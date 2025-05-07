@@ -8,25 +8,32 @@ Simple microblog web application made in the month and year of May 2025
 git clone https://github.com/spatialdeez/microblog
 ```
 
-2. Create and activate virtual environment
+### 2. Create and activate virtual environment
 Enter the following lines:
+```bash
 $ cd your_absolute_path/microblog
 $ python -m venv venv
 $ venv\Scripts\activate
+```
 
-3. Install dependencies
+### 3. Install dependencies
 Type this in your command prompt.terminal
+```bash
 $ pip install -r requirements.txt
+```
 
-4. Set enviornment variables (If variables not copied over)
+### 4. Set enviornment variables (If variables not copied over)
 Type this in your command prompt/terminal
+```bash
 $ set FLASK_APP=microblog.py
+```
 
-5. Run the Flask application!
+### 5. Run the Flask application!
 Type this in your command prompt/terminal
+```bash
 $ (venv) flask run
+```
 
-
-# Legend:
+### Legend:
 $ - stands for command prompt (e.g. C:\Users\example>)
 $ (venv) - stands for command prompt running in virtual environment (e.g. (venv) C:\Users\example>)
