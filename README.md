@@ -35,5 +35,5 @@ $ (venv) flask run
 ```
 
 ### Legend:
-$ - stands for command prompt (e.g. C:\Users\example>)
+$ - stands for command prompt (e.g. C:\Users\example>) <br/>
 $ (venv) - stands for command prompt running in virtual environment (e.g. (venv) C:\Users\example>)
