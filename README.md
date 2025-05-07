@@ -17,7 +17,7 @@ $ venv\Scripts\activate
 ```
 
 ### 3. Install dependencies
-Type this in your command prompt.terminal
+Type this in your command prompt/terminal
 ```bash
 $ pip install -r requirements.txt
 ```
