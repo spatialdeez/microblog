@@ -6,6 +6,7 @@ Simple microblog web application made in the month and year of May 2025
 
 ```bash
 git clone https://github.com/spatialdeez/microblog
+```
 
 2. Create and activate virtual environment
 Enter the following lines:
