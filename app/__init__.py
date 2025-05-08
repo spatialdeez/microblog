@@ -11,6 +11,6 @@ migrate = Migrate(app, db) # Migration engine
 login = LoginManager(app)
 login.login_view = 'login'
 
-from app import routes, models  # This ensures routes are registered
+from app import routes, models, errors  # This ensures routes are registered
 
 app.shell_context_processor(models.add_shell_context)

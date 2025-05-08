@@ -1,7 +1,7 @@
 from flask import render_template, flash, redirect, url_for, request
 from datetime import datetime, timezone
 from app import app
-from app.forms import LogInForm, RegistrationForm
+from app.forms import LogInForm, RegistrationForm, ProfileEditorForm
 from flask_login import current_user, login_user, logout_user, login_required # type: ignore
 import sqlalchemy as sa # type: ignore
 from app import db
@@ -81,3 +81,18 @@ def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
+
+@app.route('/edit-profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = ProfileEditorForm()
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.about_me = form.about_me.data
+        db.session.commit()
+        flash('Your changes have been saved successfully!')
+        return redirect(url_for('edit_profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.about_me.data = current_user.about_me
+    return render_template('edit_profile.html', title='Edit Profile', form=form)
