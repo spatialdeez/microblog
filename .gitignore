@@ -19,5 +19,4 @@ __pycache__/
 *.sqlite
 
 # Misc
-config.py
 logs/
