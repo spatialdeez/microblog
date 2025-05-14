@@ -1,35 +1,42 @@
 from flask import render_template, flash, redirect, url_for, request
 from datetime import datetime, timezone
 from app import app
-from app.forms import LogInForm, RegistrationForm, ProfileEditorForm
+from app.forms import LogInForm, RegistrationForm, ProfileEditorForm, PostForm, EmptyForm, ResetPasswordRequestForm, ResetPasswordForm
 from flask_login import current_user, login_user, logout_user, login_required # type: ignore
 import sqlalchemy as sa # type: ignore
 from app import db
-from app.models import User
-from app.forms import EmptyForm
+from app.models import Post, User
+from app.email import send_reset_password_email
 from urllib.parse import urlsplit
 
 
 # The @ symbol is a decorator!
 # It modifies the function that follows it. In this case, it registers the function as a route handler for the specified URL path.
-@app.route('/') # This decorator registers the function as a route handler for the URL path "/"
+@app.route('/', methods=['GET', 'POST']) # This decorator registers the function as a route handler for the URL path "/"
 
-@app.route('/index') # This decorator registers the function as a route handler for the URL path "/index"
+@app.route('/index', methods=['GET', 'POST']) # This decorator registers the function as a route handler for the URL path "/index"
 @login_required # type: ignore
 def index():
-    posts = [
-        {
-            'author': {'username': 'John'},
-            'body': 'I hope to see you in France!',
-        },
+    form = PostForm()
+    if form.validate_on_submit():
+        post = Post(body=form.post.data, author=current_user)
+        db.session.add(post)
+        db.session.commit()
+        flash('Your post is now live!')
+        return redirect(url_for('index'))
+    page = request.args.get('page', 1, type=int)
+    posts = db.paginate(current_user.following_posts(), page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+    if posts.has_next:
+        next_url = url_for('index', page=posts.next_num)
+    else:
+        next_url = None
 
-        {
-            'author': {'username': 'Susan'},
-            'body': 'Love the weather today!',
-        }
-
-    ]
-    return render_template('index.html', title='Home', posts=posts)
+    if posts.has_prev:
+        prev_url = url_for('index', page=posts.next_num)
+    else:
+        prev_url = None
+        
+    return render_template('index.html', title='Home', posts=posts.items, next_url=next_url, prev_url=prev_url, form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -136,3 +143,49 @@ def unfollow(username):
         return redirect(url_for('user', username=username))
     else:
         return redirect(url_for('index'))
+
+@app.route('/explore')
+@login_required
+def explore():
+    page = request.args.get('page', 1, type=int)
+    query = sa.select(Post).order_by(Post.timestamp.desc())
+    posts = db.paginate(query, page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+    if posts.has_next:
+        next_url = url_for('explore', page=posts.next_num)
+    else:
+        next_url = None
+
+    if posts.has_prev:
+        prev_url = url_for('explore', page=posts.prev_num)
+    else:
+        prev_url = None
+    return render_template('index.html', title='Explore', posts=posts.items, next_url=next_url, prev_url=prev_url)
+
+@app.route('/reset_password_request', methods=['GET', 'POST'])
+def reset_password_request():
+    if current_user.is_authenticated:
+        flash('You are already logged in!')
+        return redirect(url_for('index'))
+    form = ResetPasswordRequestForm()
+    if form.validate_on_submit():
+        user = db.session.scalar(sa.select(User).where(User.email == form.email.data))
+        if user:
+            send_reset_password_email(user)
+        flash('Check your email for the instructions to reset your password')
+    return render_template('reset_password_request.html', title='Reset Password', form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    if current_user.is_authenticated:
+        flash('You are currently logged in!')
+        return redirect(url_for('index'))
+    user = User.verify_reset_password_token(token)
+    if not user:
+        return redirect(url_for('index'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Successfully resetted your password!')
+        return redirect(url_for('login'))
+    return render_template('reset_password.html', form=form)

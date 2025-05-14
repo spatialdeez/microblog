@@ -5,6 +5,7 @@ from flask_migrate import Migrate # type: ignore
 from flask_login import LoginManager # type: ignore
 import logging
 from logging.handlers import RotatingFileHandler
+from flask_mail import Mail # type: ignore
 import os
 
 app = Flask(__name__)
@@ -13,6 +14,7 @@ db = SQLAlchemy(app) # database
 migrate = Migrate(app, db) # Migration engine
 login = LoginManager(app)
 login.login_view = 'login'
+mail = Mail(app)
 
 if not app.debug:
     if not os.path.exists('logs'):

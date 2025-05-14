@@ -1,11 +1,13 @@
 from datetime import datetime, timezone
 from typing import Optional
 from werkzeug.security import generate_password_hash, check_password_hash
-import sqlalchemy as sa # type: ignore
-import sqlalchemy.orm as so # type: ignore
 from flask_login import UserMixin # type: ignore
 from hashlib import md5
-from app import db, login
+from app import app, db, login
+from time import time
+import sqlalchemy as sa # type: ignore
+import sqlalchemy.orm as so # type: ignore
+import jwt # type: ignore
 
 
 def add_shell_context():
@@ -51,22 +53,18 @@ class User(UserMixin, db.Model):
     def follow(self, user):
         if not self.is_following(user):
             self.following.add(user)
-
     def unfollow(self, user):
         if self.is_following(user):
             self.following.remove(user)
-
     def is_following(self, user):
         query = self.following.select().where(User.id == user.id)
         return db.session.scalar(query) is not None
-    
     def followers_count(self):
         query = sa.select(sa.func.count()).select_from(self.followers.select().subquery())
         return db.session.scalar(query)
     def following_count(self):
         query = sa.select(sa.func.count()).select_from(self.following.select().subquery())
         return db.session.scalar(query)
-    
     def following_posts(self):
         Author = so.aliased(User)
         Follower = so.aliased(User)
@@ -81,7 +79,20 @@ class User(UserMixin, db.Model):
             .group_by(Post) # Remove duplicate posts
             .order_by(Post.timestamp.desc()) # sort by date
         )
+    # Verify password reset signature
+    def get_reset_password_token(self, expires_in=300):
+        return jwt.encode(
+            {'reset_password': self.id, 'exp': time() + expires_in},
+            app.config['SECRET_KEY'], algorithm='HS256'
+        )
     
+    @staticmethod
+    def verify_reset_password_token(token):
+        try:
+            id = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])['reset_password']
+        except:
+            return
+        return db.session.get(User, id)
     def __repr__(self):
         return '<User {}>'.format(self.username)
     
