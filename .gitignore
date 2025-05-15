@@ -20,3 +20,4 @@ __pycache__/
 
 # Misc
 logs/
+config.py

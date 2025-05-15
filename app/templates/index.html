@@ -2,15 +2,16 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-    <h1>Hi, {{ current_user.username }}!</h1>
     {% if form %}
+    <h1 style="color: darkslateblue;">Welcome, {{ current_user.username }}!</h1>
     {{ wtf.quick_form(form) }}
     {% endif %}
     {% if form %}
     <h2>Your Feed</h2>
     {% else %}
-    <h2>Discovery</h2>
-    <p>Find out what others are posting...</p>
+    <h2 style="color: darkslategray;">Discovery</h2>
+    <hr style="border: 2px solid gray; width: 70%;">
+    <p style="color: dimgrey;">Find out what others are posting...</p>
     {% endif %}
     {% for post in posts %}
         {% include '_post.html' %}

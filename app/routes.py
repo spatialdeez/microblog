@@ -78,10 +78,9 @@ def register():
 @login_required
 def user(username):
     user = db.first_or_404(sa.select(User).where(User.username == username))
-    posts = [
-        {'author': user, 'body': 'Text post 1'},
-        {'author': user, 'body': 'Text post 2'},
-    ]
+    page = request.args.get('page', 1, type=int)
+    query = user.posts.select().order_by(Post.timestamp.desc())
+    posts = db.paginate(query, page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
     form = EmptyForm()
     return render_template('user.html', user=user, posts=posts, form=form)
 

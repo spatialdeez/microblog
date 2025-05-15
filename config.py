@@ -11,3 +11,4 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'donotreply20353487@gmail.com'
     MAIL_PASSWORD = 'f3006eaa180f5c8de3d8f825b5dc8794'
+    LANGUAGES = ['en, es']
